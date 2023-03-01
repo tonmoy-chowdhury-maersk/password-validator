@@ -96,4 +96,25 @@ class PasswordValidatorUtilityTest {
                 .verifyComplete();
     }
 
+    @Test
+    void testThatOnlyNullabilityAndDigitsIsNotValid() {
+        StepVerifier.create(PasswordValidatorUtility.isPasswordValid("2347"))
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
+                .verify();
+    }
+
+    @Test
+    void testThatOnlyNullabilityAndUpperCaseIsNotValid() {
+        StepVerifier.create(PasswordValidatorUtility.isPasswordValid("DFFDS"))
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
+                .verify();
+    }
+
+    @Test
+    void testThatOnlyNullabilityAndLowerCaseIsNotValid() {
+        StepVerifier.create(PasswordValidatorUtility.isPasswordValid("gdfd"))
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
+                .verify();
+    }
+
 }
