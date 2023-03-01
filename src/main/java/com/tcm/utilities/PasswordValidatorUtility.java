@@ -1,38 +1,62 @@
 package com.tcm.utilities;
 
 import lombok.experimental.UtilityClass;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 @UtilityClass
 public class PasswordValidatorUtility {
 
-    public boolean isPasswordValid(String password) {
-        return validateLengthRule(password)
-                && validateNullabilityRule(password)
-                && validateUpperCaseRule(password)
-                && validateLowerCaseRule(password)
-                && validateDigitRule(password);
+    public Mono<Boolean> isPasswordValid(String password) {
+        return Flux.merge(
+                    validateLengthRule(password),
+                    validateNullabilityRule(password),
+                    validateUpperCaseRule(password),
+                    validateLowerCaseRule(password),
+                    validateDigitRule(password)).collectList()
+                .map(PasswordValidatorUtility::combineResults);
     }
 
-    private boolean validateLengthRule(String password) {
-        return Objects.nonNull(password) && password.length() > 8;
+    private static boolean combineResults(List<Boolean> validationResults) {
+        return validationResults.stream().reduce(true, (r1, r2) -> r1 && r2);
     }
 
-    private boolean validateNullabilityRule(String password) {
-        return Objects.nonNull(password);
+    private Mono<Boolean> validateLengthRule(String password) {
+        return Mono.just(password)
+                .filter(Objects::nonNull)
+                .filter(p -> p.length() > 8)
+                .flatMap(e -> Mono.just(true))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password Length invalid.")));
     }
 
-    private boolean validateUpperCaseRule(String password) {
-        return Objects.nonNull(password) && password.chars().anyMatch(Character::isUpperCase);
+    private Mono<Boolean> validateNullabilityRule(String password) {
+        return Mono.just(password)
+                .filter(Objects::nonNull)
+                .hasElement();
     }
 
-    private boolean validateLowerCaseRule(String password) {
-        return Objects.nonNull(password) && password.chars().anyMatch(Character::isLowerCase);
+    private Mono<Boolean> validateUpperCaseRule(String password) {
+        return Mono.just(password)
+                .filter(Objects::nonNull)
+                .filter(p -> p.chars().anyMatch(Character::isUpperCase))
+                .hasElement();
     }
 
-    private boolean validateDigitRule(String password) {
-        return Objects.nonNull(password) && password.chars().anyMatch(Character::isDigit);
+    private Mono<Boolean> validateLowerCaseRule(String password) {
+        return Mono.just(password)
+                .filter(Objects::nonNull)
+                .filter(p -> p.chars().anyMatch(Character::isLowerCase))
+                .hasElement();
+    }
+
+    private Mono<Boolean> validateDigitRule(String password) {
+        return Mono.just(password)
+                .filter(Objects::nonNull)
+                .filter(p -> p.chars().anyMatch(Character::isDigit))
+                .hasElement();
     }
 
 }

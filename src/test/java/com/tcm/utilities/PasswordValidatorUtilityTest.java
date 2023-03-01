@@ -11,8 +11,8 @@ class PasswordValidatorUtilityTest {
     @Test
     void testWhenAllPasswordCriteriaSucceeds() {
 
-        StepVerifier.create(Mono.just("ab7cd9EF0G"))
-                .assertNext(input -> assertTrue(PasswordValidatorUtility.isPasswordValid(input)))
+        StepVerifier.create(PasswordValidatorUtility.isPasswordValid("sfd"))
+                .expectNext(true)
                 .verifyComplete();
     }
 }
