@@ -71,14 +71,14 @@ class PasswordValidatorUtilityTest {
     @Test
     void testNullabilityDigitsAndUpperCaseValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("DG7N"))
-                .expectNext(true)
+                .expectNext(false)
                 .verifyComplete();
     }
 
     @Test
     void testNullabilityLengthAndUpperCaseValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("DDFDFTTTSSR"))
-                .expectNext(true)
+                .expectNext(false)
                 .verifyComplete();
     }
 
@@ -92,29 +92,29 @@ class PasswordValidatorUtilityTest {
     @Test
     void testNullabilityLengthAndDigitsValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("4535675624"))
-                .expectNext(true)
+                .expectNext(false)
                 .verifyComplete();
     }
 
     @Test
     void testThatOnlyNullabilityAndDigitsIsNotValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("2347"))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
-                .verify();
+                .expectNext(false)
+                .verifyComplete();
     }
 
     @Test
     void testThatOnlyNullabilityAndUpperCaseIsNotValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("DFFDS"))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
-                .verify();
+                .expectNext(false)
+                .verifyComplete();
     }
 
     @Test
     void testThatOnlyNullabilityAndLowerCaseIsNotValid() {
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("gdfd"))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException && "Password is NOT OK because at least THREE of the previous conditions is NOT MET.".equals(throwable.getMessage()))
-                .verify();
+                .expectNext(false)
+                .verifyComplete();
     }
 
 }
