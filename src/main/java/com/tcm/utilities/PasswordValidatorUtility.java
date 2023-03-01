@@ -23,12 +23,7 @@ public class PasswordValidatorUtility {
                     validateDigitRule(password))
                 .filter(Boolean::booleanValue)
                 .take(3)
-                .collectList()
-                .map(PasswordValidatorUtility::combineResults);
-    }
-
-    private static boolean combineResults(List<Boolean> validationResults) {
-        return validationResults.stream().reduce(true, (r1, r2) -> r1 && r2);
+                .reduce(true, (r1, r2) -> r1 && r2);
     }
 
     private Mono<Boolean> validateLengthRule(String password) {

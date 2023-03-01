@@ -8,7 +8,6 @@ class PasswordValidatorUtilityTest {
 
     @Test
     void testWhenAllPasswordCriteriaSucceeds() {
-
         StepVerifier.create(PasswordValidatorUtility.isPasswordValid("dsfdDFF454sfsdsd"))
                 .expectNext(true)
                 .verifyComplete();
