@@ -22,14 +22,16 @@ public class PasswordValidatorUtility {
                         validateDigitRule(password))
                 .filter(Boolean::booleanValue)
                 .count()
-                .flatMap(count -> {
-                    if (count >= 3) {
-                        return Mono.just(true);
-                    } else {
-                        return Mono.error(new IllegalArgumentException("Password is NOT OK because at least THREE of the previous conditions is NOT MET."));
-                    }
-                });
+                .flatMap(PasswordValidatorUtility::checkAtleastMinimumNoOfRulesValid);
 
+    }
+
+    private Mono<Boolean> checkAtleastMinimumNoOfRulesValid(Long count) {
+        if (count >= 3) {
+            return Mono.just(true);
+        } else {
+            return Mono.error(new IllegalArgumentException("Password is NOT OK because at least THREE of the previous conditions is NOT MET."));
+        }
     }
 
     private Mono<Boolean> validateLengthRule(String password) {
