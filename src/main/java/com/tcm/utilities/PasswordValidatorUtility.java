@@ -1,6 +1,7 @@
 package com.tcm.utilities;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 @UtilityClass
+@Slf4j
 public class PasswordValidatorUtility {
 
     private static final String NULLABILITY_CHECK_FAILURE_MESSAGE = "Password should not be null.";
@@ -18,7 +20,10 @@ public class PasswordValidatorUtility {
                     validateNullabilityRule(password),
                     validateUpperCaseRule(password),
                     validateLowerCaseRule(password),
-                    validateDigitRule(password)).collectList()
+                    validateDigitRule(password))
+                .filter(Boolean::booleanValue)
+                .take(3)
+                .collectList()
                 .map(PasswordValidatorUtility::combineResults);
     }
 
@@ -32,7 +37,9 @@ public class PasswordValidatorUtility {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.length() > 8)
                 .flatMap(e -> Mono.just(true))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should be larger than 8 chars.")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should be larger than 8 chars.")))
+                .doOnError(throwable -> log.warn(throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(false));
     }
 
     private Mono<Boolean> validateNullabilityRule(String password) {
@@ -40,7 +47,9 @@ public class PasswordValidatorUtility {
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .flatMap(e -> Mono.just(true))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
+                .doOnError(throwable -> log.warn(throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(false));
     }
 
     private Mono<Boolean> validateUpperCaseRule(String password) {
@@ -49,7 +58,9 @@ public class PasswordValidatorUtility {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isUpperCase))
                 .flatMap(e -> Mono.just(true))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one uppercase letter at least.")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one uppercase letter at least.")))
+                .doOnError(throwable -> log.warn(throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(false));
     }
 
     private Mono<Boolean> validateLowerCaseRule(String password) {
@@ -58,7 +69,9 @@ public class PasswordValidatorUtility {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isLowerCase))
                 .flatMap(e -> Mono.just(true))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one lowercase letter at least.")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one lowercase letter at least.")))
+                .doOnError(throwable -> log.warn(throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(false));
     }
 
     private Mono<Boolean> validateDigitRule(String password) {
@@ -67,7 +80,9 @@ public class PasswordValidatorUtility {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isDigit))
                 .flatMap(e -> Mono.just(true))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one number at least.")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one number at least.")))
+                .doOnError(throwable -> log.warn(throwable.getMessage()))
+                .onErrorResume(throwable -> Mono.just(false));
     }
 
 }
