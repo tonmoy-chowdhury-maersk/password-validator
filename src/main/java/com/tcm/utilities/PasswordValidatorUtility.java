@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Objects;
 
 @UtilityClass
@@ -16,14 +15,21 @@ public class PasswordValidatorUtility {
 
     public Mono<Boolean> isPasswordValid(String password) {
         return Flux.merge(
-                    validateLengthRule(password),
-                    validateNullabilityRule(password),
-                    validateUpperCaseRule(password),
-                    validateLowerCaseRule(password),
-                    validateDigitRule(password))
+                        validateLengthRule(password),
+                        validateNullabilityRule(password),
+                        validateUpperCaseRule(password),
+                        validateLowerCaseRule(password),
+                        validateDigitRule(password))
                 .filter(Boolean::booleanValue)
-                .take(3)
-                .reduce(true, (r1, r2) -> r1 && r2);
+                .count()
+                .flatMap(count -> {
+                    if (count >= 3) {
+                        return Mono.just(true);
+                    } else {
+                        return Mono.error(new IllegalArgumentException("Password is NOT OK because at least THREE of the previous conditions is NOT MET."));
+                    }
+                });
+
     }
 
     private Mono<Boolean> validateLengthRule(String password) {
