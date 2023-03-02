@@ -11,4 +11,6 @@ public class ApplicationConstants {
     public static final String UPPERCASE_RULE = "uppercase";
     public static final String LOWERCASE_RULE = "lowercase";
     public static final String DIGITS_RULE = "digits";
+
+    public static final long OPERATION_WAIT_TIME_IN_MS = 1000;
 }

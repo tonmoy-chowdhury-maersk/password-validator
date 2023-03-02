@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,11 +17,11 @@ public class PasswordValidatorUtility {
 
     public Mono<Boolean> isPasswordValid(String password) {
         return Flux.merge(
-                        validateLengthRule(password),
-                        validateNullabilityRule(password),
-                        validateUpperCaseRule(password),
-                        validateLowerCaseRule(password),
-                        validateDigitRule(password))
+                        validateLengthRule(password).delayElement(Duration.ofMillis(OPERATION_WAIT_TIME_IN_MS)),
+                        validateNullabilityRule(password).delayElement(Duration.ofMillis(OPERATION_WAIT_TIME_IN_MS)),
+                        validateUpperCaseRule(password).delayElement(Duration.ofMillis(OPERATION_WAIT_TIME_IN_MS)),
+                        validateLowerCaseRule(password).delayElement(Duration.ofMillis(OPERATION_WAIT_TIME_IN_MS)),
+                        validateDigitRule(password).delayElement(Duration.ofMillis(OPERATION_WAIT_TIME_IN_MS)))
                 .filter(ValidationResult::isSuccessfullyValidated)
                 .collectList()
                 .map(PasswordValidatorUtility::checkAtleastMinimumNoOfRulesValid)
