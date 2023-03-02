@@ -1,5 +1,8 @@
-package com.tcm.utilities;
+package com.tcm.constants;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class ApplicationConstants {
     public static final String LENGTH_CHECK_FAILURE_MESSAGE = "Password should be larger than 8 chars.";
     public static final String NULLABILITY_CHECK_FAILURE_MESSAGE = "Password should not be null.";
