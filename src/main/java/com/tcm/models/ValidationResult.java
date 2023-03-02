@@ -1,4 +1,4 @@
-package com.tcm.utilities;
+package com.tcm.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

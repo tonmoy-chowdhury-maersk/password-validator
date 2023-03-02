@@ -1,5 +1,6 @@
 package com.tcm.utilities;
 
+import com.tcm.models.ValidationResult;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -9,7 +10,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
-import static com.tcm.utilities.ApplicationConstants.*;
+import static com.tcm.constants.ApplicationConstants.*;
 
 @UtilityClass
 @Slf4j
