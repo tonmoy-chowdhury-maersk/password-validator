@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 @UtilityClass
@@ -20,72 +21,74 @@ public class PasswordValidatorUtility {
                         validateUpperCaseRule(password),
                         validateLowerCaseRule(password),
                         validateDigitRule(password))
-                .filter(Boolean::booleanValue)
-                .count()
-                .flatMap(PasswordValidatorUtility::checkAtleastMinimumNoOfRulesValid);
+                .filter(ValidationResult::isSuccessfullyValidated)
+                .collectList()
+                .map(PasswordValidatorUtility::checkAtleastMinimumNoOfRulesValid)
+                .filter(PasswordValidatorUtility::checkIfMandatoryRuleValid)
+                .hasElement();
 
     }
 
-    private Mono<Boolean> checkAtleastMinimumNoOfRulesValid(Long count) {
-        if (count >= 3) {
-            return Mono.just(true);
-        } else {
-            return Mono.error(new IllegalArgumentException("Password is NOT OK because at least THREE of the previous conditions is NOT MET."));
-        }
+    private List<ValidationResult> checkAtleastMinimumNoOfRulesValid(List<ValidationResult> validationResults) {
+        return validationResults.size() >= 3 ? validationResults : List.of();
     }
 
-    private Mono<Boolean> validateLengthRule(String password) {
+    private boolean checkIfMandatoryRuleValid(List<ValidationResult> validationResults) {
+        return validationResults.stream().anyMatch(validationResult -> "lowercase".equals(validationResult.getValidationRule()));
+    }
+
+    private Mono<ValidationResult> validateLengthRule(String password) {
         return Mono.justOrEmpty(password)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.length() > 8)
-                .flatMap(e -> Mono.just(true))
+                .flatMap(e -> Mono.just(ValidationResult.builder().validationRule("length").isSuccessfullyValidated(true).build()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should be larger than 8 chars.")))
                 .doOnError(throwable -> log.warn(throwable.getMessage()))
-                .onErrorResume(throwable -> Mono.just(false));
+                .onErrorResume(throwable -> Mono.just(ValidationResult.builder().validationRule("length").isSuccessfullyValidated(false).build()));
     }
 
-    private Mono<Boolean> validateNullabilityRule(String password) {
+    private Mono<ValidationResult> validateNullabilityRule(String password) {
         return Mono.justOrEmpty(password)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
-                .flatMap(e -> Mono.just(true))
+                .flatMap(e -> Mono.just(ValidationResult.builder().validationRule("nullability").isSuccessfullyValidated(true).build()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .doOnError(throwable -> log.warn(throwable.getMessage()))
-                .onErrorResume(throwable -> Mono.just(false));
+                .onErrorResume(throwable -> Mono.just(ValidationResult.builder().validationRule("nullability").isSuccessfullyValidated(false).build()));
     }
 
-    private Mono<Boolean> validateUpperCaseRule(String password) {
+    private Mono<ValidationResult> validateUpperCaseRule(String password) {
         return Mono.justOrEmpty(password)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isUpperCase))
-                .flatMap(e -> Mono.just(true))
+                .flatMap(e -> Mono.just(ValidationResult.builder().validationRule("uppercase").isSuccessfullyValidated(true).build()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one uppercase letter at least.")))
                 .doOnError(throwable -> log.warn(throwable.getMessage()))
-                .onErrorResume(throwable -> Mono.just(false));
+                .onErrorResume(throwable -> Mono.just(ValidationResult.builder().validationRule("uppercase").isSuccessfullyValidated(false).build()));
     }
 
-    private Mono<Boolean> validateLowerCaseRule(String password) {
+    private Mono<ValidationResult> validateLowerCaseRule(String password) {
         return Mono.justOrEmpty(password)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isLowerCase))
-                .flatMap(e -> Mono.just(true))
+                .flatMap(e -> Mono.just(ValidationResult.builder().validationRule("lowercase").isSuccessfullyValidated(true).build()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one lowercase letter at least.")))
                 .doOnError(throwable -> log.warn(throwable.getMessage()))
-                .onErrorResume(throwable -> Mono.just(false));
+                .onErrorResume(throwable -> Mono.just(ValidationResult.builder().validationRule("lowercase").isSuccessfullyValidated(false).build()));
     }
 
-    private Mono<Boolean> validateDigitRule(String password) {
+    private Mono<ValidationResult> validateDigitRule(String password) {
         return Mono.justOrEmpty(password)
                 .filter(Objects::nonNull)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(NULLABILITY_CHECK_FAILURE_MESSAGE)))
                 .filter(p -> p.chars().anyMatch(Character::isDigit))
-                .flatMap(e -> Mono.just(true))
+                .flatMap(e -> Mono.just(ValidationResult.builder().validationRule("digits").isSuccessfullyValidated(true).build()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Password should have one number at least.")))
                 .doOnError(throwable -> log.warn(throwable.getMessage()))
-                .onErrorResume(throwable -> Mono.just(false));
+                .onErrorResume(throwable -> Mono.just(ValidationResult.builder().validationRule("digits").isSuccessfullyValidated(false).build()));
     }
 
 }
